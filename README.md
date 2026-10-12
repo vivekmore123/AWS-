@@ -12,8 +12,6 @@ The Application Load Balancer routes incoming HTTP traffic to different target g
 
 ![AWS Scalable Web Architecture](project 1.jpg)
 
-*(Note: Ensure that your architecture image file is uploaded in the repository with the exact filename `project 1.jpg`)*
-
 ---
 
 ## 🎯 Project Objectives
