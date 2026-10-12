@@ -177,5 +177,5 @@ Through this project, I explored AWS networking, load balancing, path-based rout
 ## 👨‍💻 Author
 
 **Vivek**
-* GitHub: [vivekmore123](https://github.com/vivekmore123)
+* GitHub: [vivekmore@36](https://github.com/vivekmore@36)
 * Project: AWS Scalable Web Architecture
