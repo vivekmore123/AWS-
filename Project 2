@@ -1,0 +1,118 @@
+
+# Path-Based Microservices Routing Architecture on AWS
+
+
+📌 Project Overview
+
+This project demonstrates a decoupled, highly available microservices infrastructure deployed on AWS (Amazon Web Services) [image_Hh8SjC.png]. The core objective of this architecture is to implement Path-Based Routing at Layer 7 using a single Application Load Balancer (ALB) [image_Hh8SjC.png].
+The ALB serves as the central traffic controller, evaluating incoming HTTP client requests and routing them to distinct, isolated backend Target Groups (tg-train-service, tg-plane-service, and tg-bus-service) depending on the requested URL path context [image_Hh8SjC.png]. To maximize fault isolation, each transport service runs on a dedicated Amazon EC2 instance mapped to its own distinct Availability Zone within the AWS Mumbai Region (ap-south-1) [image_Hh8SjC.png].
+
+🏗️ Architecture Diagram
+
+
+
+🎯 Project Objectives
+
+• Implement Layer 7 path-based routing rules using an AWS Application Load Balancer [image_Hh8SjC.png].
+• Deploy isolated microservices using independent, dedicated Target Groups [image_Hh8SjC.png].
+• Achieve fault isolation by distributing compute workloads across distinct Availability Zones [image_Hh8SjC.png].
+• Consolidate network infrastructure costs by serving multiple services through a single load balancer ingress point [image_Hh8SjC.png].
+
+🛠️ AWS Services Used
+
+
+AWS Service	Purpose
+Amazon VPC	Establishes the isolated, secure network boundary for the project resources.
+Application Load Balancer (ALB)	The central ingress point distributing client HTTP traffic based on URL context [image_Hh8SjC.png].
+ALB Listener Rules	Contains conditional path statements (/train/*, /plane/*, /bus/*) to sort traffic [image_Hh8SjC.png].
+Target Groups	Logical groupings that route traffic directly to the backend compute nodes [image_Hh8SjC.png].
+Amazon EC2	Hosts the underlying application instances for the individual transport services [image_Hh8SjC.png].
+Availability Zones	Provides physically separated data centers (ap-south-1a/b/c) for fault resilience [image_Hh8SjC.png].
+Security Groups	Act as virtual firewalls to control traffic flow between the ALB and the EC2 instances.
+
+
+🔀 Path-Based Routing Logic
+
+The Application Load Balancer listens for incoming client requests on port 80 and switches traffic dynamically based on the requested URL route [image_Hh8SjC.png]:
+
+URL Path Pattern	Destination Target Group	Target Service Node	Host Availability Zone
+/train/*	tg-train-service	Train Service EC2	ap-south-1a
+/plane/*	tg-plane-service	Plane Service EC2	ap-south-1b
+/bus/*	tg-bus-service	Bus Service EC2	ap-south-1c
+
+
+Request Ingress Flow
+
+1. A client initiates an HTTP request (e.g., http://<ALB-DNS>/plane/index.html) over the internet [image_Hh8SjC.png].
+2. The Application Load Balancer intercepts the request and parses the path rules [image_Hh8SjC.png].
+3. Finding a match for /plane/*, the ALB routes the request to the tg-plane-service Target Group [image_Hh8SjC.png].
+4. The Target Group hands the traffic over to the Plane Service EC2 instance running inside the ap-south-1b Availability Zone [image_Hh8SjC.png].
+
+🧩 Architecture Components
+
+
+1. Application Load Balancer (ALB)
+
+• Acts as the single public entry point for all mobile and desktop clients [image_Hh8SjC.png].
+• Terminates external client connections and handles routing rules natively at Layer 7.
+
+2. Target Groups
+
+Three independent Target Groups are provisioned to isolate service traffic [image_Hh8SjC.png]:
+• tg-train-service: Binds the Train application instance.
+• tg-plane-service: Binds the Plane application instance.
+• tg-bus-service: Binds the Bus application instance.
+
+3. Compute Layer (Amazon EC2)
+
+Independent EC2 servers host the distinct transport application stacks [image_Hh8SjC.png]:
+• Train Service Node: Running inside subnet ap-south-1a.
+• Plane Service Node: Running inside subnet ap-south-1b.
+• Bus Service Node: Running inside subnet ap-south-1c.
+
+⚙️ Implementation Steps
+
+1. Network Initialization: Provision an AWS Virtual Private Cloud (VPC) configured with three public subnets mapped to ap-south-1a, ap-south-1b, and ap-south-1c respectively [image_Hh8SjC.png].
+2. Gateway Mapping: Connect an Internet Gateway to the VPC and configure route tables to allow internet connectivity [image_Hh8SjC.png].
+3. Firewall Configurations:
+	• Create an ALB Security Group allowing inbound HTTP traffic on port 80 from 0.0.0.0/0.
+	• Create an EC2 Security Group allowing inbound port 80 traffic only from the ALB Security Group.
+4. Compute Provisioning: Launch 3 distinct EC2 instances across the subnets, deploying application runtimes (e.g., Nginx/Apache hosting mock pages) on each node [image_Hh8SjC.png].
+5. Target Group Allocation: Define tg-train-service, tg-plane-service, and tg-bus-service Target Groups and register their respective EC2 nodes [image_Hh8SjC.png].
+6. ALB Deployment: Spin up an internet-facing Application Load Balancer across all three subnets [image_Hh8SjC.png].
+7. Rule Configuration: Bind an HTTP listener on port 80 to the ALB and write path-pattern rules matching /train/*, /plane/*, and /bus/* to point traffic to the correct Target Group [image_Hh8SjC.png].
+
+🧪 Testing and Validation
+
+Validate infrastructure endpoints by executing the following URL paths against the ALB public DNS name:
+• http://<YOUR-ALB-DNS-NAME>/train/ (Should return the Train Service page)
+• http://<YOUR-ALB-DNS-NAME>/plane/ (Should return the Plane Service page)
+• http://<YOUR-ALB-DNS-NAME>/bus/ (Should return the Bus Service page)
+
+Verification Metrics:
+
+• Confirm that active requests to one URL path route correctly without causing overhead on the other two nodes.
+• Verify via the AWS Console that all three Target Groups report their registered EC2 targets as Healthy via standard HTTP check paths.
+
+🔐 Security Considerations
+
+• Restricted Access Control: Backend compute instances remain isolated from the direct public internet; they accept incoming HTTP calls exclusively from the ALB proxy.
+• Minimal Blast Radius: Compromising or breaking one application service node does not provide direct internal access to the compute environments of the other services.
+
+📈 Key Architectural Benefits
+
+• High Availability & Fault Isolation: Distributing workloads natively across ap-south-1a, 1b, and 1c guards against full data center outages [image_Hh8SjC.png]. If an entire AWS zone suffers a hardware or utility failure, the remaining two services continue running uninterrupted.
+• Cost Efficiency: A single load balancer multiplexes incoming traffic across multiple applications, optimizing billing overhead by removing the need for dedicated routing hardware for every single microservice.
+• Decoupled Lifecycle: The Train, Plane, and Bus environments maintain structural independence [image_Hh8SjC.png]. System administrators can run patches or deploy updates on the Train node without taking down the Bus or Plane services.
+
+🚀 Future Enhancements
+
+• Transition from HTTP to HTTPS by binding custom domain SSL certificates via AWS Certificate Manager (ACM).
+• Automate the provisioning of this exact architecture diagram using Infrastructure as Code (IaC) via Terraform.
+• Map a clean, client-facing custom domain name to the ALB endpoint using Amazon Route 53.
+
+👨‍💻 Author
+
+Vivek
+• GitHub: vivekmore@36
+• Project: AWS Path-Based Microservices Routing Architecture
