@@ -1,7 +1,7 @@
 
 # Path-Based Microservices Routing Architecture on AWS
 
-
+    
 📌 Project Overview
 
 This project demonstrates a decoupled, highly available microservices infrastructure deployed on AWS (Amazon Web Services) [image_Hh8SjC.png]. The core objective of this architecture is to implement Path-Based Routing at Layer 7 using a single Application Load Balancer (ALB) [image_Hh8SjC.png].
