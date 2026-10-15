@@ -10,7 +10,8 @@ The Application Load Balancer routes incoming HTTP traffic to different target g
 
 ## 🏗️ Architecture Diagram
 
-![AWS Scalable Web Architecture](project 1.jpg)
+<img width="1264" height="843" alt="project 1" src="https://github.com/user-attachments/assets/05cea90e-d6c5-416d-baed-31a9ffa03abd" />
+
 
 ---
 
